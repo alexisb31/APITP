@@ -2,35 +2,7 @@ import express, { Request, Response } from 'express';
 import low, { LowdbSync } from 'lowdb';
 import FileSync from 'lowdb/adapters/FileSync';
 import bodyParser from 'body-parser';
-import * as yup from 'yup';// Schéma de validation Yup pour le cours
-const courseSchema = yup.object({
-  title: yup.string().required(),
-  description: yup.string().required(),
-  // Ajoutez d'autres champs si nécessaire
-});
-
-app.post('/courses', async (req: Request, res: Response) => {
-  const { title, description } = req.body;
-
-  try {
-    // Validation des données avec Yup
-    await courseSchema.validate({ title, description });
-
-    // Récupération des cours existants dans la base de données
-    const courses = db.get('courses').value();
-
-    // Génération d'un nouvel ID de cours
-    const lastCourse = courses[courses.length - 1];
-    const id = lastCourse ? Number(lastCourse.id) + 1 : 1;
-
-    // Ajout du cours à la base de données de manière atomique
-    db.update('courses', (courses: any[]) => courses.concat({ id, title, description })).write();
-
-    res.status(201).json({ id, title, description });
-  } catch (error: any) {
-    res.status(400).json({ error: error.message });
-  }
-});
+import * as yup from 'yup';
 
 // Base de données JSON
 const adapter = new FileSync('db.json');
@@ -109,4 +81,34 @@ app.post('/users', async (req: Request, res: Response) => {
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
+});
+
+// Schéma de validation Yup pour le cours
+const courseSchema = yup.object({
+  title: yup.string().required(),
+  description: yup.string().required(),
+  // Ajoutez d'autres champs si nécessaire
+});
+
+app.post('/courses', async (req: Request, res: Response) => {
+  const { title, description } = req.body;
+
+  try {
+    // Validation des données avec Yup
+    await courseSchema.validate({ title, description });
+
+    // Récupération des cours existants dans la base de données
+    const courses = db.get('courses').value();
+
+    // Génération d'un nouvel ID de cours
+    const lastCourse = courses[courses.length - 1];
+    const id = lastCourse ? Number(lastCourse.id) + 1 : 1;
+
+    // Ajout du cours à la base de données de manière atomique
+    db.update('courses', (courses: any[]) => courses.concat({ id, title, description })).write();
+
+    res.status(201).json({ id, title, description });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
 });
